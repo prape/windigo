@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/rodrigocfd/windigo/ui"
 	"github.com/rodrigocfd/windigo/ui/wm"
@@ -60,12 +61,16 @@ func (me *Picture) events() {
 	})
 
 	me.wnd.On().WmLButtonDown(func(_ wm.Mouse) {
-		state, _ := me.mediaCtrl.GetState(-1)
-		if state == co.FILTER_STATE_State_Running {
-			me.mediaCtrl.Pause()
-		} else {
-			me.mediaCtrl.Run()
-		}
+		// state, _ := me.mediaCtrl.GetState(-1)
+		// if state == co.FILTER_STATE_State_Running {
+		// 	me.mediaCtrl.Pause()
+		// } else {
+		// 	me.mediaCtrl.Run()
+		// }
+
+		me.mediaSeek.SetPositions(
+			1*time.Hour, co.SEEKING_FLAGS_AbsolutePositioning,
+			0, co.SEEKING_FLAGS_NoPositioning)
 	})
 }
 
@@ -74,12 +79,17 @@ func (me *Picture) CurrentTime() string {
 		return ""
 	}
 
-	curPos, _ := me.mediaSeek.GetPositions()
-	curPos /= 1000 * 100 // millisecond * nanosecond
-	return fmt.Sprintf("%d:%d:%d",
-		(curPos-(curPos%(60*60)))/60*60,
-		curPos-(curPos%60),
-		curPos)
+	pos := me.mediaSeek.GetCurrentPosition()
+	st := win.SYSTEMTIME{}
+	win.Time.DurationToSystemtime(pos, &st)
+
+	tot := me.mediaSeek.GetDuration()
+	st2 := win.SYSTEMTIME{}
+	win.Time.DurationToSystemtime(tot, &st2)
+
+	return fmt.Sprintf("%d:%02d:%02d of %d:%02d:%02d",
+		st.WHour, st.WMinute, st.WSecond,
+		st2.WHour, st2.WMinute, st2.WSecond)
 }
 
 func (me *Picture) StartPlayback(vidPath string) {
@@ -115,5 +125,4 @@ func (me *Picture) StartPlayback(vidPath string) {
 	me.controllerEvr.SetVideoPosition(nil, &rc)
 
 	me.mediaCtrl.Run()
-
 }
