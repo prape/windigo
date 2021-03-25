@@ -57,7 +57,8 @@ func (me *Main) events() {
 		me.wnd.Hwnd().SetTimer(1, 1000, func(msElapsed uint32) {
 			runtime.ReadMemStats(&memStats)
 			me.wnd.Hwnd().SetWindowText(
-				fmt.Sprintf("Alloc: %s, cycles: %d, next: %s",
+				fmt.Sprintf("%s / Alloc: %s, cycles: %d, next: %s",
+					me.pic.CurrentTime(),
 					win.Str.FmtBytes(memStats.HeapAlloc),
 					memStats.NumGC,
 					win.Str.FmtBytes(memStats.NextGC)))
