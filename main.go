@@ -67,7 +67,7 @@ func (me *Main) events() {
 	})
 
 	me.wnd.On().WmCommandAccelMenu(CMD_OPEN, func(_ wm.Command) {
-		vidPath, ok := ui.Native.OpenSingleFile(me.wnd, []shell.FilterSpec{
+		vidPath, ok := ui.Prompt.OpenSingleFile(me.wnd, []shell.FilterSpec{
 			{Name: "All video files", Spec: "*.mkv;*.mp4"},
 			{Name: "Matroska", Spec: "*.mkv"},
 			{Name: "MPEG-4", Spec: "*.mp4"},

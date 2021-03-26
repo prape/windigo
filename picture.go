@@ -69,7 +69,7 @@ func (me *Picture) events() {
 		// }
 
 		me.mediaSeek.SetPositions(
-			1*time.Hour, co.SEEKING_FLAGS_AbsolutePositioning,
+			40*time.Minute, co.SEEKING_FLAGS_AbsolutePositioning,
 			0, co.SEEKING_FLAGS_NoPositioning)
 	})
 }
@@ -79,32 +79,28 @@ func (me *Picture) CurrentTime() string {
 		return ""
 	}
 
-	pos := me.mediaSeek.GetCurrentPosition()
-	st := win.SYSTEMTIME{}
-	win.Time.DurationToSystemtime(pos, &st)
+	stNow := win.SYSTEMTIME{}
+	stNow.FromDuration(me.mediaSeek.GetCurrentPosition())
 
-	tot := me.mediaSeek.GetDuration()
-	st2 := win.SYSTEMTIME{}
-	win.Time.DurationToSystemtime(tot, &st2)
+	stTot := win.SYSTEMTIME{}
+	stTot.FromDuration(me.mediaSeek.GetDuration())
 
 	return fmt.Sprintf("%d:%02d:%02d of %d:%02d:%02d",
-		st.WHour, st.WMinute, st.WSecond,
-		st2.WHour, st2.WMinute, st2.WSecond)
+		stNow.WHour, stNow.WMinute, stNow.WSecond,
+		stTot.WHour, stTot.WMinute, stTot.WSecond)
 }
 
 func (me *Picture) StartPlayback(vidPath string) {
 	me.Free()
 
-	me.graphBuilder = dshow.CoCreateIGraphBuilder(co.CLSCTX_INPROC_SERVER)
-	me.vmr = dshow.CoCreateEnhancedVideoRenderer(co.CLSCTX_INPROC_SERVER)
-	if e := me.graphBuilder.AddFilter(&me.vmr, "EVR"); e != nil {
-		panic(e)
-	}
+	me.graphBuilder, _ = dshow.CoCreateIGraphBuilder(co.CLSCTX_INPROC_SERVER)
+	me.vmr, _ = dshow.CoCreateEnhancedVideoRenderer(co.CLSCTX_INPROC_SERVER)
+	me.graphBuilder.AddFilter(&me.vmr, "EVR")
 
-	getSvc := me.vmr.QueryIMFGetService()
+	getSvc, _ := me.vmr.QueryIMFGetService()
 	defer getSvc.Release()
 
-	me.controllerEvr = getSvc.GetServiceIMFVideoDisplayControl()
+	me.controllerEvr, _ = getSvc.GetServiceIMFVideoDisplayControl()
 	if e := me.controllerEvr.SetVideoWindow(me.wnd.Hwnd()); e != nil {
 		panic(e)
 	}
