@@ -108,9 +108,9 @@ func (me *Picture) StartPlayback(vidPath string) {
 		panic(e)
 	}
 
-	me.mediaCtrl = me.graphBuilder.QueryIMediaControl()
-	me.mediaSeek = me.graphBuilder.QueryIMediaSeeking()
-	me.basicAudio = me.graphBuilder.QueryIBasicAudio()
+	me.mediaCtrl, _ = me.graphBuilder.QueryIMediaControl()
+	me.mediaSeek, _ = me.graphBuilder.QueryIMediaSeeking()
+	me.basicAudio, _ = me.graphBuilder.QueryIBasicAudio()
 
 	if e := me.graphBuilder.RenderFile(vidPath); e != nil {
 		panic(e)
