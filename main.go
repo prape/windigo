@@ -54,7 +54,7 @@ var memStats runtime.MemStats // cache
 
 func (me *Main) events() {
 	me.wnd.On().WmCreate(func(p wm.Create) int {
-		me.wnd.Hwnd().SetTimer(1, 1000, func(msElapsed uint32) {
+		me.wnd.Hwnd().SetTimer(1, 500, func(msElapsed uint32) {
 			runtime.ReadMemStats(&memStats)
 			me.wnd.Hwnd().SetWindowText(
 				fmt.Sprintf("%s / Alloc: %s, cycles: %d, next: %s",

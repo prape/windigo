@@ -68,9 +68,11 @@ func (me *Picture) events() {
 		// 	me.mediaCtrl.Run()
 		// }
 
-		me.mediaSeek.SetPositions(
-			40*time.Minute, co.SEEKING_FLAGS_AbsolutePositioning,
-			0, co.SEEKING_FLAGS_NoPositioning)
+		if me.mediaCtrl.Ppv != nil {
+			me.mediaSeek.SetPositions(
+				5*time.Second, co.SEEKING_FLAGS_RelativePositioning,
+				0, co.SEEKING_FLAGS_NoPositioning)
+		}
 	})
 }
 
