@@ -23,7 +23,7 @@ type Picture struct {
 }
 
 func NewPicture(parent ui.AnyParent, pos win.POINT, sz win.SIZE) *Picture {
-	wnd := ui.NewWindowControlOpts(parent, ui.WindowControlOpts{
+	wnd := ui.NewWindowControlRaw(parent, ui.WindowControlRawOpts{
 		Position: pos,
 		Size:     sz,
 	})
@@ -60,6 +60,14 @@ func (me *Picture) events() {
 		}
 	})
 
+	me.wnd.On().WmSize(func(p wm.Size) {
+		if me.controllerEvr.Ppv != nil {
+			rc := me.wnd.Hwnd().GetWindowRect()
+			me.wnd.Hwnd().ScreenToClientRc(&rc)
+			me.controllerEvr.SetVideoPosition(nil, &rc)
+		}
+	})
+
 	me.wnd.On().WmLButtonDown(func(_ wm.Mouse) {
 		// state, _ := me.mediaCtrl.GetState(-1)
 		// if state == co.FILTER_STATE_State_Running {
@@ -70,15 +78,15 @@ func (me *Picture) events() {
 
 		if me.mediaCtrl.Ppv != nil {
 			me.mediaSeek.SetPositions(
-				5*time.Second, co.SEEKING_FLAGS_RelativePositioning,
+				me.mediaSeek.GetCurrentPosition()+5*time.Second, co.SEEKING_FLAGS_AbsolutePositioning,
 				0, co.SEEKING_FLAGS_NoPositioning)
 		}
 	})
 }
 
-func (me *Picture) CurrentTime() string {
+func (me *Picture) CurrentTimeFormatted() string {
 	if me.mediaSeek.Ppv == nil {
-		return ""
+		return "NO VIDEO"
 	}
 
 	stNow := win.SYSTEMTIME{}
@@ -90,6 +98,28 @@ func (me *Picture) CurrentTime() string {
 	return fmt.Sprintf("%d:%02d:%02d of %d:%02d:%02d",
 		stNow.WHour, stNow.WMinute, stNow.WSecond,
 		stTot.WHour, stTot.WMinute, stTot.WSecond)
+}
+
+func (me *Picture) SetCurrentPos(newPos time.Duration) {
+	if me.mediaSeek.Ppv != nil {
+		me.mediaSeek.SetPositions(
+			newPos, co.SEEKING_FLAGS_AbsolutePositioning,
+			0, co.SEEKING_FLAGS_NoPositioning)
+	}
+}
+
+func (me *Picture) CurrentPos() time.Duration {
+	if me.mediaSeek.Ppv == nil {
+		return 0
+	}
+	return me.mediaSeek.GetCurrentPosition()
+}
+
+func (me *Picture) Duration() time.Duration {
+	if me.mediaSeek.Ppv == nil {
+		return 0
+	}
+	return me.mediaSeek.GetDuration()
 }
 
 func (me *Picture) StartPlayback(vidPath string) {
