@@ -84,42 +84,46 @@ func (me *Picture) events() {
 	})
 }
 
-func (me *Picture) CurrentTimeFormatted() string {
-	if me.mediaSeek.Ppv == nil {
-		return "NO VIDEO"
-	}
-
-	stNow := win.SYSTEMTIME{}
-	stNow.FromDuration(me.mediaSeek.GetCurrentPosition())
-
-	stTot := win.SYSTEMTIME{}
-	stTot.FromDuration(me.mediaSeek.GetDuration())
-
-	return fmt.Sprintf("%d:%02d:%02d of %d:%02d:%02d",
-		stNow.WHour, stNow.WMinute, stNow.WSecond,
-		stTot.WHour, stTot.WMinute, stTot.WSecond)
-}
-
-func (me *Picture) SetCurrentPos(newPos time.Duration) {
+func (me *Picture) SetCurrentPos(secs int) {
 	if me.mediaSeek.Ppv != nil {
 		me.mediaSeek.SetPositions(
-			newPos, co.SEEKING_FLAGS_AbsolutePositioning,
+			time.Duration(secs)*time.Second, co.SEEKING_FLAGS_AbsolutePositioning,
 			0, co.SEEKING_FLAGS_NoPositioning)
 	}
 }
 
-func (me *Picture) CurrentPos() time.Duration {
+func (me *Picture) CurrentPos() (secs int) {
 	if me.mediaSeek.Ppv == nil {
-		return 0
+		secs = 0
+		return
 	}
-	return me.mediaSeek.GetCurrentPosition()
+	secs = int(me.mediaSeek.GetCurrentPosition() / time.Second)
+	return
 }
 
-func (me *Picture) Duration() time.Duration {
+func (me *Picture) CurrentPosDurFmt() string {
 	if me.mediaSeek.Ppv == nil {
-		return 0
+		return "NO VIDEO"
 	}
-	return me.mediaSeek.GetDuration()
+
+	stCurPos := win.SYSTEMTIME{}
+	stCurPos.FromDuration(me.mediaSeek.GetCurrentPosition())
+
+	stDur := win.SYSTEMTIME{}
+	stDur.FromDuration(me.mediaSeek.GetDuration())
+
+	return fmt.Sprintf("%d:%02d:%02d of %d:%02d:%02d",
+		stCurPos.WHour, stCurPos.WMinute, stCurPos.WSecond,
+		stDur.WHour, stDur.WMinute, stDur.WSecond)
+}
+
+func (me *Picture) Duration() (secs int) {
+	if me.mediaSeek.Ppv == nil {
+		secs = 0
+		return
+	}
+	secs = int(me.mediaSeek.GetDuration() / time.Second)
+	return
 }
 
 func (me *Picture) StartPlayback(vidPath string) {

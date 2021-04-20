@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"runtime"
-	"time"
 
 	"github.com/rodrigocfd/windigo/ui"
 	"github.com/rodrigocfd/windigo/ui/wm"
@@ -48,6 +47,7 @@ func NewMain() *Main {
 			Position:       win.POINT{X: 10, Y: 266},
 			Size:           win.SIZE{Cx: 480},
 			TrackbarStyles: co.TBS_HORZ | co.TBS_NOTICKS | co.TBS_BOTH,
+			PageSize:       60 * 5,
 		}),
 		resz: ui.NewResizer(wnd),
 	}
@@ -64,19 +64,21 @@ func (me *Main) Run() {
 
 func (me *Main) events() {
 	me.wnd.On().WmCreate(func(p wm.Create) int {
-		me.resz.Add(ui.RESZ_RESIZE, ui.RESZ_RESIZE, me.pic.wnd)
+		me.resz.Add(ui.RESZ_RESIZE, ui.RESZ_RESIZE, me.pic.wnd).
+			Add(ui.RESZ_RESIZE, ui.RESZ_REPOS, me.slider)
 
 		me.wnd.Hwnd().SetTimer(1, 500, func(msElapsed uint32) {
 			memStats := runtime.MemStats{}
 			runtime.ReadMemStats(&memStats)
+
 			me.wnd.Hwnd().SetWindowText(
 				fmt.Sprintf("%s / Alloc: %s, cycles: %d, next: %s",
-					me.pic.CurrentTimeFormatted(),
+					me.pic.CurrentPosDurFmt(),
 					win.Str.FmtBytes(memStats.HeapAlloc),
 					memStats.NumGC,
 					win.Str.FmtBytes(memStats.NextGC)))
 
-			me.slider.SetPos(int(me.pic.CurrentPos().Seconds()))
+			me.slider.SetPos(me.pic.CurrentPos())
 		})
 		return 0
 	})
@@ -90,7 +92,7 @@ func (me *Main) events() {
 		})
 		if ok {
 			me.pic.StartPlayback(vidPath)
-			me.slider.SetRangeMax(int(me.pic.Duration().Seconds()))
+			me.slider.SetRangeMax(me.pic.Duration())
 		}
 	})
 
@@ -100,7 +102,7 @@ func (me *Main) events() {
 
 	me.wnd.On().WmHScroll(func(p wm.HScroll) {
 		if p.Request() == co.SB_REQ_ENDSCROLL && p.HwndScrollbar() == me.slider.Hwnd() {
-			me.pic.SetCurrentPos(time.Duration(me.slider.Pos() * int(time.Second)))
+			me.pic.SetCurrentPos(me.slider.Pos())
 		}
 	})
 }
