@@ -12,6 +12,8 @@ import (
 )
 
 func main() {
+	runtime.LockOSThread()
+
 	win.CoInitializeEx(co.COINIT_APARTMENTTHREADED)
 	defer win.CoUninitialize()
 
