@@ -69,17 +69,11 @@ func (me *Picture) events() {
 	})
 
 	me.wnd.On().WmLButtonDown(func(_ wm.Mouse) {
-		// state, _ := me.mediaCtrl.GetState(-1)
-		// if state == co.FILTER_STATE_State_Running {
-		// 	me.mediaCtrl.Pause()
-		// } else {
-		// 	me.mediaCtrl.Run()
-		// }
-
-		if me.mediaCtrl.Ppv != nil {
-			me.mediaSeek.SetPositions(
-				me.mediaSeek.GetCurrentPosition()+5*time.Second, co.SEEKING_FLAGS_AbsolutePositioning,
-				0, co.SEEKING_FLAGS_NoPositioning)
+		state, _ := me.mediaCtrl.GetState(-1)
+		if state == co.FILTER_STATE_State_Running {
+			me.mediaCtrl.Pause()
+		} else {
+			me.mediaCtrl.Run()
 		}
 	})
 }
