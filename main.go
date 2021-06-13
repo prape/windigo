@@ -49,7 +49,7 @@ func NewMain() *Main {
 			Position:       win.POINT{X: 10, Y: 266},
 			Size:           win.SIZE{Cx: 480},
 			TrackbarStyles: co.TBS_HORZ | co.TBS_NOTICKS | co.TBS_BOTH,
-			PageSize:       60 * 5,
+			PageSize:       5,
 		}),
 		resz: ui.NewResizer(wnd),
 	}
@@ -86,14 +86,28 @@ func (me *Main) events() {
 	})
 
 	me.wnd.On().WmCommandAccelMenu(CMD_OPEN, func(_ wm.Command) {
-		vidPath, ok := ui.Prompt.OpenSingleFile(me.wnd, []shell.FilterSpec{
+		fod, lerr := shell.CoCreateIFileOpenDialog(co.CLSCTX_INPROC_SERVER)
+		if lerr != nil {
+			panic(lerr)
+		}
+		defer fod.Release()
+
+		flags := fod.GetOptions()
+		fod.SetOptions(flags | co.FOS_FORCEFILESYSTEM | co.FOS_FILEMUSTEXIST)
+
+		fod.SetFileTypes([]shell.FilterSpec{
 			{Name: "All video files", Spec: "*.mkv;*.mp4"},
 			{Name: "Matroska", Spec: "*.mkv"},
 			{Name: "MPEG-4", Spec: "*.mp4"},
 			{Name: "Anything", Spec: "*.*"},
 		})
-		if ok {
-			me.pic.StartPlayback(vidPath)
+		fod.SetFileTypeIndex(0)
+
+		if fod.Show(me.wnd.Hwnd()) {
+			shi := fod.GetResult()
+			defer shi.Release()
+
+			me.pic.StartPlayback(shi.GetDisplayName(co.SIGDN_FILESYSPATH))
 			me.slider.SetRangeMax(me.pic.Duration())
 		}
 	})
