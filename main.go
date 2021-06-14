@@ -86,10 +86,7 @@ func (me *Main) events() {
 	})
 
 	me.wnd.On().WmCommandAccelMenu(CMD_OPEN, func(_ wm.Command) {
-		fod, lerr := shell.CoCreateIFileOpenDialog(co.CLSCTX_INPROC_SERVER)
-		if lerr != nil {
-			panic(lerr)
-		}
+		fod := shell.CoCreateIFileOpenDialog(co.CLSCTX_INPROC_SERVER)
 		defer fod.Release()
 
 		flags := fod.GetOptions()

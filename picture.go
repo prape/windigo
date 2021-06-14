@@ -123,8 +123,8 @@ func (me *Picture) Duration() (secs int) {
 func (me *Picture) StartPlayback(vidPath string) {
 	me.Free()
 
-	me.graphBuilder, _ = dshow.CoCreateIGraphBuilder(co.CLSCTX_INPROC_SERVER)
-	me.vmr, _ = dshow.CoCreateEnhancedVideoRenderer(co.CLSCTX_INPROC_SERVER)
+	me.graphBuilder = dshow.CoCreateIGraphBuilder(co.CLSCTX_INPROC_SERVER)
+	me.vmr = dshow.CoCreateEnhancedVideoRenderer(co.CLSCTX_INPROC_SERVER)
 	me.graphBuilder.AddFilter(&me.vmr, "EVR")
 
 	getSvc, _ := me.vmr.QueryIMFGetService()
