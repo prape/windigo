@@ -127,10 +127,10 @@ func (me *Picture) StartPlayback(vidPath string) {
 	me.vmr = dshow.CoCreateEnhancedVideoRenderer(co.CLSCTX_INPROC_SERVER)
 	me.graphBuilder.AddFilter(&me.vmr, "EVR")
 
-	getSvc, _ := me.vmr.QueryIMFGetService()
+	getSvc := me.vmr.QueryIMFGetService()
 	defer getSvc.Release()
 
-	me.controllerEvr, _ = getSvc.GetServiceIMFVideoDisplayControl()
+	me.controllerEvr = getSvc.GetServiceIMFVideoDisplayControl()
 	if e := me.controllerEvr.SetVideoWindow(me.wnd.Hwnd()); e != nil {
 		panic(e)
 	}
@@ -138,9 +138,9 @@ func (me *Picture) StartPlayback(vidPath string) {
 		panic(e)
 	}
 
-	me.mediaCtrl, _ = me.graphBuilder.QueryIMediaControl()
-	me.mediaSeek, _ = me.graphBuilder.QueryIMediaSeeking()
-	me.basicAudio, _ = me.graphBuilder.QueryIBasicAudio()
+	me.mediaCtrl = me.graphBuilder.QueryIMediaControl()
+	me.mediaSeek = me.graphBuilder.QueryIMediaSeeking()
+	me.basicAudio = me.graphBuilder.QueryIBasicAudio()
 
 	if e := me.graphBuilder.RenderFile(vidPath); e != nil {
 		panic(e)
