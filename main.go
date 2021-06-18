@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"runtime"
 
 	"github.com/rodrigocfd/windigo/ui"
@@ -9,6 +8,7 @@ import (
 	"github.com/rodrigocfd/windigo/win"
 	"github.com/rodrigocfd/windigo/win/co"
 	"github.com/rodrigocfd/windigo/win/com/shell"
+	"github.com/rodrigocfd/windigo/win/com/shell/shellco"
 )
 
 func main() {
@@ -24,10 +24,10 @@ func main() {
 const CMD_OPEN int = 20_000
 
 type Main struct {
-	wnd    ui.WindowMain
-	pic    *Picture
-	slider ui.Trackbar
-	resz   ui.Resizer
+	wnd     ui.WindowMain
+	pic     *Picture
+	tracker *Tracker
+	resz    ui.Resizer
 }
 
 func NewMain() *Main {
@@ -42,20 +42,17 @@ func NewMain() *Main {
 			co.WS_MAXIMIZEBOX | co.WS_SIZEBOX,
 	})
 
-	me := Main{
-		wnd: wnd,
-		pic: NewPicture(wnd, win.POINT{X: 10, Y: 10}, win.SIZE{Cx: 480, Cy: 250}),
-		slider: ui.NewTrackbarRaw(wnd, ui.TrackbarRawOpts{
-			Position:       win.POINT{X: 10, Y: 266},
-			Size:           win.SIZE{Cx: 480},
-			TrackbarStyles: co.TBS_HORZ | co.TBS_NOTICKS | co.TBS_BOTH,
-			PageSize:       5,
-		}),
-		resz: ui.NewResizer(wnd),
+	me := &Main{
+		wnd:     wnd,
+		pic:     NewPicture(wnd, win.POINT{X: 10, Y: 10}, win.SIZE{Cx: 480, Cy: 250}),
+		tracker: NewTracker(wnd, win.POINT{X: 10, Y: 270}, win.SIZE{Cx: 480, Cy: 20}),
+		resz:    ui.NewResizer(wnd),
 	}
 
+	me.resz.Add(ui.RESZ_RESIZE, ui.RESZ_RESIZE, me.pic.wnd).
+		Add(ui.RESZ_RESIZE, ui.RESZ_REPOS, me.tracker.wnd)
 	me.events()
-	return &me
+	return me
 }
 
 func (me *Main) Run() {
@@ -66,21 +63,20 @@ func (me *Main) Run() {
 
 func (me *Main) events() {
 	me.wnd.On().WmCreate(func(p wm.Create) int {
-		me.resz.Add(ui.RESZ_RESIZE, ui.RESZ_RESIZE, me.pic.wnd).
-			Add(ui.RESZ_RESIZE, ui.RESZ_REPOS, me.slider)
+		me.wnd.Hwnd().SetTimer(1, 100, func(msElapsed uint32) {
+			// memStats := runtime.MemStats{}
+			// runtime.ReadMemStats(&memStats)
 
-		me.wnd.Hwnd().SetTimer(1, 500, func(msElapsed uint32) {
-			memStats := runtime.MemStats{}
-			runtime.ReadMemStats(&memStats)
+			// me.wnd.Hwnd().SetWindowText(
+			// 	fmt.Sprintf("%s / Alloc: %s, cycles: %d, next: %s",
+			// 		me.pic.CurrentPosDurFmt(),
+			// 		win.Str.FmtBytes(memStats.HeapAlloc),
+			// 		memStats.NumGC,
+			// 		win.Str.FmtBytes(memStats.NextGC)))
 
-			me.wnd.Hwnd().SetWindowText(
-				fmt.Sprintf("%s / Alloc: %s, cycles: %d, next: %s",
-					me.pic.CurrentPosDurFmt(),
-					win.Str.FmtBytes(memStats.HeapAlloc),
-					memStats.NumGC,
-					win.Str.FmtBytes(memStats.NextGC)))
+			me.wnd.Hwnd().SetWindowText(me.pic.CurrentPosDurFmt())
 
-			me.slider.SetPos(me.pic.CurrentPos())
+			me.tracker.SetElapsed(float32(me.pic.CurrentPos()) / float32(me.pic.Duration()))
 		})
 		return 0
 	})
@@ -90,7 +86,7 @@ func (me *Main) events() {
 		defer fod.Release()
 
 		flags := fod.GetOptions()
-		fod.SetOptions(flags | co.FOS_FORCEFILESYSTEM | co.FOS_FILEMUSTEXIST)
+		fod.SetOptions(flags | shellco.FOS_FORCEFILESYSTEM | shellco.FOS_FILEMUSTEXIST)
 
 		fod.SetFileTypes([]shell.FilterSpec{
 			{Name: "All video files", Spec: "*.mkv;*.mp4"},
@@ -104,8 +100,7 @@ func (me *Main) events() {
 			shi := fod.GetResult()
 			defer shi.Release()
 
-			me.pic.StartPlayback(shi.GetDisplayName(co.SIGDN_FILESYSPATH))
-			me.slider.SetRangeMax(me.pic.Duration())
+			me.pic.StartPlayback(shi.GetDisplayName(shellco.SIGDN_FILESYSPATH))
 		}
 	})
 
@@ -113,9 +108,7 @@ func (me *Main) events() {
 		me.wnd.Hwnd().SendMessage(co.WM_CLOSE, 0, 0)
 	})
 
-	me.wnd.On().WmHScroll(func(p wm.HScroll) {
-		if p.Request() == co.SB_REQ_ENDSCROLL && p.HwndScrollbar() == me.slider.Hwnd() {
-			me.pic.SetCurrentPos(me.slider.Pos())
-		}
+	me.tracker.OnClick(func(pct float32) {
+		me.pic.SetCurrentPos(int(float32(me.pic.Duration()) * pct))
 	})
 }

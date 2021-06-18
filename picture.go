@@ -9,6 +9,7 @@ import (
 	"github.com/rodrigocfd/windigo/win"
 	"github.com/rodrigocfd/windigo/win/co"
 	"github.com/rodrigocfd/windigo/win/com/dshow"
+	"github.com/rodrigocfd/windigo/win/com/dshow/dshowco"
 )
 
 type Picture struct {
@@ -28,12 +29,12 @@ func NewPicture(parent ui.AnyParent, pos win.POINT, sz win.SIZE) *Picture {
 		Size:     sz,
 	})
 
-	me := Picture{
+	me := &Picture{
 		wnd: wnd,
 	}
 
 	me.events()
-	return &me
+	return me
 }
 
 func (me *Picture) Free() {
@@ -70,7 +71,7 @@ func (me *Picture) events() {
 
 	me.wnd.On().WmLButtonDown(func(_ wm.Mouse) {
 		state, _ := me.mediaCtrl.GetState(-1)
-		if state == co.FILTER_STATE_State_Running {
+		if state == dshowco.FILTER_STATE_State_Running {
 			me.mediaCtrl.Pause()
 		} else {
 			me.mediaCtrl.Run()
@@ -81,8 +82,8 @@ func (me *Picture) events() {
 func (me *Picture) SetCurrentPos(secs int) {
 	if me.mediaSeek.Ppv != nil {
 		me.mediaSeek.SetPositions(
-			time.Duration(secs)*time.Second, co.SEEKING_FLAGS_AbsolutePositioning,
-			0, co.SEEKING_FLAGS_NoPositioning)
+			time.Duration(secs)*time.Second, dshowco.SEEKING_FLAGS_AbsolutePositioning,
+			0, dshowco.SEEKING_FLAGS_NoPositioning)
 	}
 }
 
@@ -134,7 +135,7 @@ func (me *Picture) StartPlayback(vidPath string) {
 	if e := me.controllerEvr.SetVideoWindow(me.wnd.Hwnd()); e != nil {
 		panic(e)
 	}
-	if e := me.controllerEvr.SetAspectRatioMode(co.MFVideoARMode_PreservePicture); e != nil {
+	if e := me.controllerEvr.SetAspectRatioMode(dshowco.MFVideoARMode_PreservePicture); e != nil {
 		panic(e)
 	}
 
