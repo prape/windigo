@@ -24,10 +24,12 @@ type Picture struct {
 }
 
 func NewPicture(parent ui.AnyParent, pos win.POINT, sz win.SIZE) *Picture {
-	wnd := ui.NewWindowControlRaw(parent, ui.WindowControlRawOpts{
-		Position: pos,
-		Size:     sz,
-	})
+	wnd := ui.NewWindowControl(parent,
+		ui.WindowControlOpts().
+			Position(pos).
+			Size(sz).
+			WndExStyles(co.WS_EX_CLIENTEDGE),
+	)
 
 	me := &Picture{
 		wnd: wnd,

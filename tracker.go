@@ -14,12 +14,13 @@ type Tracker struct {
 }
 
 func NewTracker(parent ui.AnyParent, pos win.POINT, sz win.SIZE) *Tracker {
-	wnd := ui.NewWindowControlRaw(parent, ui.WindowControlRawOpts{
-		Position: pos,
-		Size:     sz,
-		HCursor:  win.HINSTANCE(0).LoadCursor(co.IDC_HAND),
-		ExStyles: co.WS_EX(0),
-	})
+	wnd := ui.NewWindowControl(parent,
+		ui.WindowControlOpts().
+			Position(pos).
+			Size(sz).
+			HCursor(win.HINSTANCE(0).LoadCursor(co.IDC_HAND)).
+			WndExStyles(co.WS_EX_CLIENTEDGE),
+	)
 
 	me := &Tracker{
 		wnd: wnd,
@@ -31,18 +32,26 @@ func NewTracker(parent ui.AnyParent, pos win.POINT, sz win.SIZE) *Tracker {
 
 func (me *Tracker) events() {
 	me.wnd.On().WmPaint(func() {
+		hwnd := me.wnd.Hwnd()
+
 		ps := win.PAINTSTRUCT{}
-		hdc := me.wnd.Hwnd().BeginPaint(&ps)
-		defer me.wnd.Hwnd().EndPaint(&ps)
+		hdc := hwnd.BeginPaint(&ps)
+		defer hwnd.EndPaint(&ps)
 
-		myBrush := win.CreateSolidBrush(win.GetSysColor(co.COLOR_ACTIVECAPTION))
+		fillColor := win.GetSysColor(co.COLOR_ACTIVECAPTION)
+
+		myPen := win.CreatePen(co.PS_SOLID, 1, fillColor)
+		defer myPen.DeleteObject()
+		defPen := hdc.SelectObjectPen(myPen)
+		defer hdc.SelectObjectPen(defPen)
+
+		myBrush := win.CreateSolidBrush(fillColor)
 		defer myBrush.DeleteObject()
+		defBrush := hdc.SelectObjectBrush(myBrush)
+		defer hdc.SelectObjectBrush(defBrush)
 
-		oldBrush := hdc.SelectObjectBrush(myBrush)
-		defer hdc.SelectObjectBrush(oldBrush)
-
-		rcClient := me.wnd.Hwnd().GetClientRect()
-		hdc.Rectangle(0, 0, int32(float32(rcClient.Right)*me.elapsed)-1, rcClient.Bottom-1)
+		rcClient := hwnd.GetClientRect()
+		hdc.Rectangle(0, 0, int32(float32(rcClient.Right)*me.elapsed), rcClient.Bottom)
 	})
 
 	me.wnd.On().WmLButtonDown(func(p wm.Mouse) {

@@ -31,16 +31,17 @@ type Main struct {
 }
 
 func NewMain() *Main {
-	wnd := ui.NewWindowMainRaw(ui.WindowMainRawOpts{
-		Title:  "The playback",
-		IconId: 101,
-		AccelTable: ui.NewAcceleratorTable().
-			AddChar('O', co.ACCELF_CONTROL, CMD_OPEN),
-		ClientAreaSize: win.SIZE{Cx: 500, Cy: 300},
-		Styles: co.WS_CAPTION | co.WS_SYSMENU | co.WS_CLIPCHILDREN |
-			co.WS_BORDER | co.WS_VISIBLE | co.WS_MINIMIZEBOX |
-			co.WS_MAXIMIZEBOX | co.WS_SIZEBOX,
-	})
+	wnd := ui.NewWindowMain(
+		ui.WindowMainOpts().
+			Title("The playback").
+			IconId(101).
+			AccelTable(ui.NewAcceleratorTable().
+				AddChar('O', co.ACCELF_CONTROL, CMD_OPEN)).
+			ClientArea(win.SIZE{Cx: 500, Cy: 300}).
+			WndStyles(co.WS_CAPTION | co.WS_SYSMENU | co.WS_CLIPCHILDREN |
+				co.WS_BORDER | co.WS_VISIBLE | co.WS_MINIMIZEBOX |
+				co.WS_MAXIMIZEBOX | co.WS_SIZEBOX),
+	)
 
 	me := &Main{
 		wnd:     wnd,
