@@ -27,8 +27,7 @@ func NewPicture(parent ui.AnyParent, pos win.POINT, sz win.SIZE) *Picture {
 	wnd := ui.NewWindowControl(parent,
 		ui.WindowControlOpts().
 			Position(pos).
-			Size(sz).
-			WndExStyles(co.WS_EX_CLIENTEDGE),
+			Size(sz),
 	)
 
 	me := &Picture{

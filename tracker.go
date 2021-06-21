@@ -18,8 +18,7 @@ func NewTracker(parent ui.AnyParent, pos win.POINT, sz win.SIZE) *Tracker {
 		ui.WindowControlOpts().
 			Position(pos).
 			Size(sz).
-			HCursor(win.HINSTANCE(0).LoadCursor(co.IDC_HAND)).
-			WndExStyles(co.WS_EX_CLIENTEDGE),
+			HCursor(win.HINSTANCE(0).LoadCursor(co.IDC_HAND)),
 	)
 
 	me := &Tracker{
