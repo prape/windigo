@@ -23,6 +23,7 @@ func main() {
 
 const CMD_OPEN int = 20_000
 
+// Main application window.
 type Main struct {
 	wnd     ui.WindowMain
 	pic     *Picture
@@ -37,7 +38,7 @@ func NewMain() *Main {
 			IconId(101).
 			AccelTable(ui.NewAcceleratorTable().
 				AddChar('O', co.ACCELF_CONTROL, CMD_OPEN)).
-			ClientArea(win.SIZE{Cx: 500, Cy: 300}).
+			ClientArea(win.SIZE{Cx: 600, Cy: 300}).
 			WndStyles(co.WS_CAPTION | co.WS_SYSMENU | co.WS_CLIPCHILDREN |
 				co.WS_BORDER | co.WS_VISIBLE | co.WS_MINIMIZEBOX |
 				co.WS_MAXIMIZEBOX | co.WS_SIZEBOX),
@@ -45,8 +46,8 @@ func NewMain() *Main {
 
 	me := &Main{
 		wnd:     wnd,
-		pic:     NewPicture(wnd, win.POINT{X: 10, Y: 10}, win.SIZE{Cx: 480, Cy: 250}),
-		tracker: NewTracker(wnd, win.POINT{X: 10, Y: 270}, win.SIZE{Cx: 480, Cy: 20}),
+		pic:     NewPicture(wnd, win.POINT{X: 10, Y: 10}, win.SIZE{Cx: 580, Cy: 250}),
+		tracker: NewTracker(wnd, win.POINT{X: 10, Y: 270}, win.SIZE{Cx: 580, Cy: 20}),
 		resz:    ui.NewResizer(wnd),
 	}
 
@@ -107,7 +108,7 @@ func (me *Main) events() {
 		}
 	})
 
-	me.wnd.On().WmCommandAccelMenu(int(co.ID_CANCEL), func(_ wm.Command) {
+	me.wnd.On().WmCommandAccelMenu(int(co.ID_CANCEL), func(_ wm.Command) { // close on ESC
 		me.wnd.Hwnd().SendMessage(co.WM_CLOSE, 0, 0)
 	})
 

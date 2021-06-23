@@ -7,10 +7,11 @@ import (
 	"github.com/rodrigocfd/windigo/win/co"
 )
 
+// Child window which displays the playback progress.
 type Tracker struct {
-	wnd      ui.WindowControl
-	funClick func(pct float32)
-	elapsed  float32
+	wnd       ui.WindowControl
+	onClickCB func(pct float32)
+	elapsed   float32
 }
 
 func NewTracker(parent ui.AnyParent, pos win.POINT, sz win.SIZE) *Tracker {
@@ -32,12 +33,18 @@ func NewTracker(parent ui.AnyParent, pos win.POINT, sz win.SIZE) *Tracker {
 func (me *Tracker) events() {
 	me.wnd.On().WmPaint(func() {
 		hwnd := me.wnd.Hwnd()
+		hasFocus := win.GetFocus() == hwnd
 
 		ps := win.PAINTSTRUCT{}
 		hdc := hwnd.BeginPaint(&ps)
 		defer hwnd.EndPaint(&ps)
 
-		fillColor := win.GetSysColor(co.COLOR_ACTIVECAPTION)
+		fillColor := win.COLORREF(0)
+		if hasFocus {
+			fillColor = win.GetSysColor(co.COLOR_ACTIVECAPTION)
+		} else {
+			fillColor = win.GetSysColor(co.COLOR_ACTIVEBORDER)
+		}
 
 		myPen := win.CreatePen(co.PS_SOLID, 1, fillColor)
 		defer myPen.DeleteObject()
@@ -54,16 +61,22 @@ func (me *Tracker) events() {
 	})
 
 	me.wnd.On().WmLButtonDown(func(p wm.Mouse) {
-		if me.funClick != nil {
+		me.wnd.Hwnd().SetFocus()
+
+		if me.onClickCB != nil {
 			rcClient := me.wnd.Hwnd().GetClientRect()
 			pct := float32(p.Pos().X) / float32(rcClient.Right)
-			me.funClick(pct)
+			me.onClickCB(pct)
 		}
+	})
+
+	me.wnd.On().WmKeyUp(func(p wm.Key) {
+		println(p.VirtualKeyCode())
 	})
 }
 
 func (me *Tracker) OnClick(fun func(pct float32)) {
-	me.funClick = fun
+	me.onClickCB = fun
 }
 
 func (me *Tracker) SetElapsed(pct float32) {
