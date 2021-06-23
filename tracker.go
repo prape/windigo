@@ -9,9 +9,10 @@ import (
 
 // Child window which displays the playback progress.
 type Tracker struct {
-	wnd       ui.WindowControl
-	onClickCB func(pct float32)
-	elapsed   float32
+	wnd           ui.WindowControl
+	onClickCB     func(pct float32)
+	onLeftRightCB func(key co.VK)
+	elapsed       float32
 }
 
 func NewTracker(parent ui.AnyParent, pos win.POINT, sz win.SIZE) *Tracker {
@@ -71,12 +72,20 @@ func (me *Tracker) events() {
 	})
 
 	me.wnd.On().WmKeyUp(func(p wm.Key) {
-		println(p.VirtualKeyCode())
+		if p.VirtualKeyCode() == co.VK_LEFT || p.VirtualKeyCode() == co.VK_RIGHT {
+			if me.onLeftRightCB != nil {
+				me.onLeftRightCB(p.VirtualKeyCode())
+			}
+		}
 	})
 }
 
 func (me *Tracker) OnClick(fun func(pct float32)) {
 	me.onClickCB = fun
+}
+
+func (me *Tracker) OnLeftRight(fun func(key co.VK)) {
+	me.onLeftRightCB = fun
 }
 
 func (me *Tracker) SetElapsed(pct float32) {

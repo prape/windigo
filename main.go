@@ -115,4 +115,12 @@ func (me *Main) events() {
 	me.tracker.OnClick(func(pct float32) {
 		me.pic.SetCurrentPos(int(float32(me.pic.Duration()) * pct))
 	})
+
+	me.tracker.OnLeftRight(func(key co.VK) {
+		if key == co.VK_LEFT {
+			me.pic.BackwardSecs(10)
+		} else if key == co.VK_RIGHT {
+			me.pic.ForwardSecs(10)
+		}
+	})
 }

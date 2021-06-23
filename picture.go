@@ -85,48 +85,6 @@ func (me *Picture) events() {
 	})
 }
 
-func (me *Picture) SetCurrentPos(secs int) {
-	if me.mediaSeek.Ppv != nil {
-		me.mediaSeek.SetPositions(
-			time.Duration(secs)*time.Second, dshowco.SEEKING_FLAGS_AbsolutePositioning,
-			0, dshowco.SEEKING_FLAGS_NoPositioning)
-	}
-}
-
-func (me *Picture) CurrentPos() (secs int) {
-	if me.mediaSeek.Ppv == nil {
-		secs = 0
-		return
-	}
-	secs = int(me.mediaSeek.GetCurrentPosition() / time.Second)
-	return
-}
-
-func (me *Picture) CurrentPosDurFmt() string {
-	if me.mediaSeek.Ppv == nil {
-		return "NO VIDEO"
-	}
-
-	stCurPos := win.SYSTEMTIME{}
-	stCurPos.FromDuration(me.mediaSeek.GetCurrentPosition())
-
-	stDur := win.SYSTEMTIME{}
-	stDur.FromDuration(me.mediaSeek.GetDuration())
-
-	return fmt.Sprintf("%d:%02d:%02d of %d:%02d:%02d",
-		stCurPos.WHour, stCurPos.WMinute, stCurPos.WSecond,
-		stDur.WHour, stDur.WMinute, stDur.WSecond)
-}
-
-func (me *Picture) Duration() (secs int) {
-	if me.mediaSeek.Ppv == nil {
-		secs = 0
-		return
-	}
-	secs = int(me.mediaSeek.GetDuration() / time.Second)
-	return
-}
-
 func (me *Picture) StartPlayback(vidPath string) {
 	me.Free()
 
@@ -167,4 +125,71 @@ func (me *Picture) Pause() {
 			me.mediaCtrl.Pause()
 		}
 	}
+}
+
+func (me *Picture) Duration() (secs int) {
+	if me.mediaSeek.Ppv == nil {
+		secs = 0
+		return
+	}
+	secs = int(me.mediaSeek.GetDuration() / time.Second)
+	return
+}
+
+func (me *Picture) SetCurrentPos(secs int) {
+	if me.mediaSeek.Ppv != nil {
+		me.mediaSeek.SetPositions(
+			time.Duration(secs)*time.Second, dshowco.SEEKING_FLAGS_AbsolutePositioning,
+			0, dshowco.SEEKING_FLAGS_NoPositioning)
+	}
+}
+
+func (me *Picture) CurrentPos() (secs int) {
+	if me.mediaSeek.Ppv == nil {
+		secs = 0
+		return
+	}
+	secs = int(me.mediaSeek.GetCurrentPosition() / time.Second)
+	return
+}
+
+func (me *Picture) CurrentPosDurFmt() string {
+	if me.mediaSeek.Ppv == nil {
+		return "NO VIDEO"
+	}
+
+	stCurPos := win.SYSTEMTIME{}
+	stCurPos.FromDuration(me.mediaSeek.GetCurrentPosition())
+
+	stDur := win.SYSTEMTIME{}
+	stDur.FromDuration(me.mediaSeek.GetDuration())
+
+	return fmt.Sprintf("%d:%02d:%02d of %d:%02d:%02d",
+		stCurPos.WHour, stCurPos.WMinute, stCurPos.WSecond,
+		stDur.WHour, stDur.WMinute, stDur.WSecond)
+}
+
+func (me *Picture) ForwardSecs(secs int) {
+	if me.mediaSeek.Ppv == nil {
+		return
+	}
+
+	newSecs := me.CurrentPos() + secs
+	duration := me.Duration()
+	if newSecs >= duration {
+		newSecs = duration - 1
+	}
+	me.SetCurrentPos(newSecs)
+}
+
+func (me *Picture) BackwardSecs(secs int) {
+	if me.mediaSeek.Ppv == nil {
+		return
+	}
+
+	newSecs := me.CurrentPos() - secs
+	if newSecs < 0 {
+		newSecs = 0
+	}
+	me.SetCurrentPos(newSecs)
 }
