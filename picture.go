@@ -73,15 +73,7 @@ func (me *Picture) events() {
 
 	me.wnd.On().WmLButtonDown(func(_ wm.Mouse) {
 		me.wnd.Hwnd().SetFocus()
-
-		if me.mediaCtrl.Ppv != nil {
-			state, _ := me.mediaCtrl.GetState(-1)
-			if state == dshowco.FILTER_STATE_State_Running {
-				me.mediaCtrl.Pause()
-			} else {
-				me.mediaCtrl.Run()
-			}
-		}
+		me.TogglePlayPause()
 	})
 }
 
@@ -123,6 +115,17 @@ func (me *Picture) Pause() {
 		state, _ := me.mediaCtrl.GetState(-1)
 		if state == dshowco.FILTER_STATE_State_Running {
 			me.mediaCtrl.Pause()
+		}
+	}
+}
+
+func (me *Picture) TogglePlayPause() {
+	if me.mediaCtrl.Ppv != nil {
+		state, _ := me.mediaCtrl.GetState(-1)
+		if state == dshowco.FILTER_STATE_State_Running {
+			me.mediaCtrl.Pause()
+		} else {
+			me.mediaCtrl.Run()
 		}
 	}
 }

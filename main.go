@@ -116,6 +116,10 @@ func (me *Main) events() {
 		me.pic.SetCurrentPos(int(float32(me.pic.Duration()) * pct))
 	})
 
+	me.tracker.OnSpace(func() {
+		me.pic.TogglePlayPause()
+	})
+
 	me.tracker.OnLeftRight(func(key co.VK) {
 		if key == co.VK_LEFT {
 			me.pic.BackwardSecs(10)

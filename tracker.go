@@ -11,6 +11,7 @@ import (
 type Tracker struct {
 	wnd           ui.WindowControl
 	onClickCB     func(pct float32)
+	onSpaceCB     func()
 	onLeftRightCB func(key co.VK)
 	elapsed       float32
 }
@@ -71,6 +72,14 @@ func (me *Tracker) events() {
 		}
 	})
 
+	me.wnd.On().WmKeyDown(func(p wm.Key) {
+		if p.VirtualKeyCode() == co.VK_SPACE {
+			if me.onSpaceCB != nil {
+				me.onSpaceCB()
+			}
+		}
+	})
+
 	me.wnd.On().WmKeyUp(func(p wm.Key) {
 		if p.VirtualKeyCode() == co.VK_LEFT || p.VirtualKeyCode() == co.VK_RIGHT {
 			if me.onLeftRightCB != nil {
@@ -82,6 +91,10 @@ func (me *Tracker) events() {
 
 func (me *Tracker) OnClick(fun func(pct float32)) {
 	me.onClickCB = fun
+}
+
+func (me *Tracker) OnSpace(fun func()) {
+	me.onSpaceCB = fun
 }
 
 func (me *Tracker) OnLeftRight(fun func(key co.VK)) {
