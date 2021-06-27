@@ -93,7 +93,8 @@ func (me *Main) events() {
 		fod.SetOptions(flags | shellco.FOS_FORCEFILESYSTEM | shellco.FOS_FILEMUSTEXIST)
 
 		fod.SetFileTypes([]shell.FilterSpec{
-			{Name: "All video files", Spec: "*.mkv;*.mp4"},
+			{Name: "All video files", Spec: "*.avi;*.mkv;*.mp4"},
+			{Name: "AVI", Spec: "*.avi"},
 			{Name: "Matroska", Spec: "*.mkv"},
 			{Name: "MPEG-4", Spec: "*.mp4"},
 			{Name: "Anything", Spec: "*.*"},
