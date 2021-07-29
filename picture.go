@@ -80,14 +80,14 @@ func (me *Picture) events() {
 func (me *Picture) StartPlayback(vidPath string) {
 	me.Free()
 
-	me.graphBuilder = dshow.CoCreateIGraphBuilder(co.CLSCTX_INPROC_SERVER)
-	me.vmr = dshow.CoCreateEnhancedVideoRenderer(co.CLSCTX_INPROC_SERVER)
+	me.graphBuilder = dshow.NewIGraphBuilder(co.CLSCTX_INPROC_SERVER)
+	me.vmr = dshow.NewEnhancedVideoRenderer(co.CLSCTX_INPROC_SERVER)
 	me.graphBuilder.AddFilter(&me.vmr, "EVR")
 
 	getSvc := me.vmr.QueryIMFGetService()
 	defer getSvc.Release()
 
-	me.controllerEvr = getSvc.GetServiceIMFVideoDisplayControl()
+	me.controllerEvr = getSvc.GetIMFVideoDisplayControl()
 	if e := me.controllerEvr.SetVideoWindow(me.wnd.Hwnd()); e != nil {
 		panic(e)
 	}
