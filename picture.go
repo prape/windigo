@@ -134,9 +134,10 @@ func (me *Picture) Duration() (secs int) {
 	if me.mediaSeek.Ppv == nil {
 		secs = 0
 		return
+	} else {
+		secs = int(me.mediaSeek.GetDuration() / time.Second)
+		return
 	}
-	secs = int(me.mediaSeek.GetDuration() / time.Second)
-	return
 }
 
 func (me *Picture) SetCurrentPos(secs int) {
@@ -151,9 +152,10 @@ func (me *Picture) CurrentPos() (secs int) {
 	if me.mediaSeek.Ppv == nil {
 		secs = 0
 		return
+	} else {
+		secs = int(me.mediaSeek.GetCurrentPosition() / time.Second)
+		return
 	}
-	secs = int(me.mediaSeek.GetCurrentPosition() / time.Second)
-	return
 }
 
 func (me *Picture) CurrentPosDurFmt() string {
@@ -180,7 +182,7 @@ func (me *Picture) ForwardSecs(secs int) {
 	newSecs := me.CurrentPos() + secs
 	duration := me.Duration()
 	if newSecs >= duration {
-		newSecs = duration - 1
+		newSecs = duration - 1 // max pos
 	}
 	me.SetCurrentPos(newSecs)
 }
@@ -192,7 +194,7 @@ func (me *Picture) BackwardSecs(secs int) {
 
 	newSecs := me.CurrentPos() - secs
 	if newSecs < 0 {
-		newSecs = 0
+		newSecs = 0 // min pos
 	}
 	me.SetCurrentPos(newSecs)
 }
