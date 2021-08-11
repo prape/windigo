@@ -80,12 +80,14 @@ func (me *Tracker) events() {
 		}
 	})
 
-	me.wnd.On().WmKeyUp(func(p wm.Key) {
+	me.wnd.On().WmGetDlgCode(func(p wm.GetDlgCode) co.DLGC {
 		if p.VirtualKeyCode() == co.VK_LEFT || p.VirtualKeyCode() == co.VK_RIGHT {
 			if me.onLeftRightCB != nil {
 				me.onLeftRightCB(p.VirtualKeyCode())
 			}
+			return co.DLGC_WANTARROWS
 		}
+		return co.DLGC_NONE
 	})
 }
 
