@@ -21,7 +21,10 @@ func main() {
 	m.Run()
 }
 
-const CMD_OPEN int = 20_000
+const (
+	CMD_OPEN  int = 20_000
+	CMD_ABOUT int = 20_001
+)
 
 // Main application window.
 type Main struct {
@@ -37,7 +40,8 @@ func NewMain() *Main {
 			Title("The playback").
 			IconId(101).
 			AccelTable(ui.NewAcceleratorTable().
-				AddChar('O', co.ACCELF_CONTROL, CMD_OPEN)).
+				AddChar('O', co.ACCELF_CONTROL, CMD_OPEN).
+				AddKey(co.VK_F1, co.ACCELF_NONE, CMD_ABOUT)).
 			ClientArea(win.SIZE{Cx: 600, Cy: 300}).
 			WndStyles(co.WS_CAPTION | co.WS_SYSMENU | co.WS_CLIPCHILDREN |
 				co.WS_BORDER | co.WS_VISIBLE | co.WS_MINIMIZEBOX |
@@ -104,6 +108,20 @@ func (me *Main) events() {
 		if fod.Show(me.wnd.Hwnd()) {
 			me.pic.StartPlayback(fod.GetResultDisplayName(shellco.SIGDN_FILESYSPATH))
 		}
+	})
+
+	me.wnd.On().WmCommandAccelMenu(CMD_ABOUT, func(_ wm.Command) {
+		tdc := win.TASKDIALOGCONFIG{}
+		tdc.SetCbSize()
+		tdc.SetHwndParent(me.wnd.Hwnd())
+		tdc.SetDwFlags(co.TDF_ALLOW_DIALOG_CANCELLATION)
+		tdc.SetDwCommonButtons(co.TDCBF_OK)
+		tdc.SetHMainIcon(co.TD_ICON_INFORMATION)
+		tdc.SetPszWindowTitle("About")
+		tdc.SetPszMainInstruction("Playback")
+		tdc.SetPszContent("Windigo experimental playback application.")
+
+		win.TaskDialogIndirect(&tdc)
 	})
 
 	me.wnd.On().WmCommandAccelMenu(int(co.ID_CANCEL), func(_ wm.Command) { // close on ESC
