@@ -89,8 +89,8 @@ func (me *Main) events() {
 		fod := shell.NewIFileOpenDialog(co.CLSCTX_INPROC_SERVER)
 		defer fod.Release()
 
-		flags := fod.GetOptions()
-		fod.SetOptions(flags | shellco.FOS_FORCEFILESYSTEM | shellco.FOS_FILEMUSTEXIST)
+		fod.SetOptions(fod.GetOptions() |
+			shellco.FOS_FORCEFILESYSTEM | shellco.FOS_FILEMUSTEXIST)
 
 		fod.SetFileTypes([]shell.FilterSpec{
 			{Name: "All video files", Spec: "*.avi;*.mkv;*.mp4"},
@@ -99,13 +99,10 @@ func (me *Main) events() {
 			{Name: "MPEG-4", Spec: "*.mp4"},
 			{Name: "Anything", Spec: "*.*"},
 		})
-		fod.SetFileTypeIndex(0)
+		fod.SetFileTypeIndex(1)
 
 		if fod.Show(me.wnd.Hwnd()) {
-			shi := fod.GetResult()
-			defer shi.Release()
-
-			me.pic.StartPlayback(shi.GetDisplayName(shellco.SIGDN_FILESYSPATH))
+			me.pic.StartPlayback(fod.GetResultDisplayName(shellco.SIGDN_FILESYSPATH))
 		}
 	})
 
