@@ -59,7 +59,12 @@ func (me *Tracker) events() {
 		defer hdc.SelectObjectBrush(defBrush)
 
 		rcClient := hwnd.GetClientRect()
-		hdc.Rectangle(0, 0, int32(float32(rcClient.Right)*me.elapsed), rcClient.Bottom)
+		hdc.Rectangle(win.RECT{
+			Left:   0,
+			Top:    0,
+			Right:  int32(float32(rcClient.Right) * me.elapsed),
+			Bottom: rcClient.Bottom,
+		})
 	})
 
 	me.wnd.On().WmLButtonDown(func(p wm.Mouse) {
