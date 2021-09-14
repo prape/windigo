@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"runtime"
 
 	"github.com/rodrigocfd/windigo/ui"
@@ -105,9 +106,9 @@ func (me *Main) events() {
 		})
 		fod.SetFileTypeIndex(1)
 
-		shiDir, _ := shell.NewShellItem(win.GetCurrentDirectory())
-		defer shiDir.Release()
-		fod.SetFolder(&shiDir)
+		// shiDir, _ := shell.NewShellItem(win.GetCurrentDirectory())
+		// defer shiDir.Release()
+		// fod.SetFolder(&shiDir)
 
 		if fod.Show(me.wnd.Hwnd()) {
 			me.pic.StartPlayback(fod.GetResultDisplayName(shellco.SIGDN_FILESYSPATH))
@@ -115,6 +116,9 @@ func (me *Main) events() {
 	})
 
 	me.wnd.On().WmCommandAccelMenu(CMD_ABOUT, func(_ wm.Command) {
+		memStats := runtime.MemStats{}
+		runtime.ReadMemStats(&memStats)
+
 		tdc := win.TASKDIALOGCONFIG{}
 		tdc.SetCbSize()
 		tdc.SetHwndParent(me.wnd.Hwnd())
@@ -123,7 +127,18 @@ func (me *Main) events() {
 		tdc.SetHMainIcon(co.TD_ICON_INFORMATION)
 		tdc.SetPszWindowTitle("About")
 		tdc.SetPszMainInstruction("Playback")
-		tdc.SetPszContent("Windigo experimental playback application.")
+		tdc.SetPszContent(fmt.Sprintf(
+			"Windigo experimental playback application.\n\n"+
+				"Alloc mem: %s\n"+
+				"Alloc sys: %s\n"+
+				"Alloc idle: %s\n"+
+				"GC cycles: %d\n"+
+				"Next GC: %s",
+			win.Str.FmtBytes(memStats.HeapAlloc),
+			win.Str.FmtBytes(memStats.HeapSys),
+			win.Str.FmtBytes(memStats.HeapIdle),
+			memStats.NumGC,
+			win.Str.FmtBytes(memStats.NextGC)))
 
 		win.TaskDialogIndirect(&tdc)
 	})
