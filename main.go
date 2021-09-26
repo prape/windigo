@@ -106,9 +106,9 @@ func (me *Main) events() {
 		})
 		fod.SetFileTypeIndex(1)
 
-		// shiDir, _ := shell.NewShellItem(win.GetCurrentDirectory())
-		// defer shiDir.Release()
-		// fod.SetFolder(&shiDir)
+		shiDir, _ := shell.NewShellItem(win.GetCurrentDirectory())
+		defer shiDir.Release()
+		fod.SetFolder(&shiDir)
 
 		if fod.Show(me.wnd.Hwnd()) {
 			me.pic.StartPlayback(fod.GetResultDisplayName(shellco.SIGDN_FILESYSPATH))

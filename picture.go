@@ -75,6 +75,23 @@ func (me *Picture) events() {
 		me.wnd.Hwnd().SetFocus()
 		me.TogglePlayPause()
 	})
+
+	me.wnd.On().WmKeyDown(func(p wm.Key) {
+		if p.VirtualKeyCode() == co.VK_SPACE {
+			me.TogglePlayPause()
+		}
+	})
+
+	me.wnd.On().WmGetDlgCode(func(p wm.GetDlgCode) co.DLGC {
+		if p.VirtualKeyCode() == co.VK_LEFT {
+			me.BackwardSecs(10)
+			return co.DLGC_WANTARROWS
+		} else if p.VirtualKeyCode() == co.VK_RIGHT {
+			me.ForwardSecs(10)
+			return co.DLGC_WANTARROWS
+		}
+		return co.DLGC_NONE
+	})
 }
 
 func (me *Picture) StartPlayback(vidPath string) {
