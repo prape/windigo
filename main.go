@@ -32,7 +32,6 @@ type Main struct {
 	wnd     ui.WindowMain
 	pic     *Picture
 	tracker *Tracker
-	resz    ui.Resizer
 }
 
 func NewMain() *Main {
@@ -50,14 +49,17 @@ func NewMain() *Main {
 	)
 
 	me := &Main{
-		wnd:     wnd,
-		pic:     NewPicture(wnd, win.POINT{X: 10, Y: 10}, win.SIZE{Cx: 580, Cy: 250}),
-		tracker: NewTracker(wnd, win.POINT{X: 10, Y: 270}, win.SIZE{Cx: 580, Cy: 20}),
-		resz:    ui.NewResizer(wnd),
+		wnd: wnd,
+		pic: NewPicture(wnd,
+			win.POINT{X: 10, Y: 10},
+			win.SIZE{Cx: 580, Cy: 250},
+			ui.HORZ_RESIZE, ui.VERT_RESIZE),
+		tracker: NewTracker(wnd,
+			win.POINT{X: 10, Y: 270},
+			win.SIZE{Cx: 580, Cy: 20},
+			ui.HORZ_RESIZE, ui.VERT_REPOS),
 	}
 
-	me.resz.Add(ui.RESZ_RESIZE, ui.RESZ_RESIZE, me.pic.wnd).
-		Add(ui.RESZ_RESIZE, ui.RESZ_REPOS, me.tracker.wnd)
 	me.events()
 	return me
 }

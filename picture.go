@@ -24,11 +24,16 @@ type Picture struct {
 	basicAudio    dshow.IBasicAudio
 }
 
-func NewPicture(parent ui.AnyParent, pos win.POINT, sz win.SIZE) *Picture {
+func NewPicture(
+	parent ui.AnyParent, pos win.POINT, sz win.SIZE,
+	horz ui.HORZ, vert ui.VERT) *Picture {
+
 	wnd := ui.NewWindowControl(parent,
 		ui.WindowControlOpts().
 			Position(pos).
-			Size(sz),
+			Size(sz).
+			Horz(horz).
+			Vert(vert),
 	)
 
 	me := &Picture{

@@ -18,11 +18,16 @@ type Tracker struct {
 	elapsed       float32
 }
 
-func NewTracker(parent ui.AnyParent, pos win.POINT, sz win.SIZE) *Tracker {
+func NewTracker(
+	parent ui.AnyParent, pos win.POINT, sz win.SIZE,
+	horz ui.HORZ, vert ui.VERT) *Tracker {
+
 	wnd := ui.NewWindowControl(parent,
 		ui.WindowControlOpts().
 			Position(pos).
 			Size(sz).
+			Horz(horz).
+			Vert(vert).
 			HCursor(win.HINSTANCE(0).LoadCursor(co.IDC_HAND)),
 	)
 
