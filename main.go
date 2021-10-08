@@ -108,9 +108,9 @@ func (me *Main) events() {
 		})
 		fod.SetFileTypeIndex(1)
 
-		shiDir, _ := shell.NewShellItem(win.GetCurrentDirectory())
-		defer shiDir.Release()
-		fod.SetFolder(&shiDir)
+		// shiDir, _ := shell.NewShellItem(win.GetCurrentDirectory())
+		// defer shiDir.Release()
+		// fod.SetFolder(&shiDir)
 
 		if fod.Show(me.wnd.Hwnd()) {
 			me.pic.StartPlayback(fod.GetResultDisplayName(shellco.SIGDN_FILESYSPATH))
@@ -126,7 +126,7 @@ func (me *Main) events() {
 		tdc.SetHwndParent(me.wnd.Hwnd())
 		tdc.SetDwFlags(co.TDF_ALLOW_DIALOG_CANCELLATION)
 		tdc.SetDwCommonButtons(co.TDCBF_OK)
-		tdc.SetHMainIcon(co.TD_ICON_INFORMATION)
+		tdc.SetHMainIcon(win.TdcIconTdi(co.TD_ICON_INFORMATION))
 		tdc.SetPszWindowTitle("About")
 		tdc.SetPszMainInstruction("Playback")
 		tdc.SetPszContent(fmt.Sprintf(
