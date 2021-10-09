@@ -23,8 +23,8 @@ func main() {
 }
 
 const (
-	CMD_OPEN  int = 20_000
-	CMD_ABOUT int = 20_001
+	CMD_OPEN = iota + 20_000
+	CMD_ABOUT
 )
 
 // Main application window.
