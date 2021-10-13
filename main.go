@@ -45,7 +45,8 @@ func NewMain() *Main {
 			ClientArea(win.SIZE{Cx: 600, Cy: 300}).
 			WndStyles(co.WS_CAPTION | co.WS_SYSMENU | co.WS_CLIPCHILDREN |
 				co.WS_BORDER | co.WS_VISIBLE | co.WS_MINIMIZEBOX |
-				co.WS_MAXIMIZEBOX | co.WS_SIZEBOX),
+				co.WS_MAXIMIZEBOX | co.WS_SIZEBOX).
+			WndExStyles(co.WS_EX_ACCEPTFILES),
 	)
 
 	me := &Main{
@@ -88,6 +89,13 @@ func (me *Main) events() {
 			me.tracker.SetElapsed(float32(me.pic.CurrentPos()) / float32(me.pic.Duration()))
 		})
 		return 0
+	})
+
+	me.wnd.On().WmDropFiles(func(p wm.DropFiles) {
+		droppedFiles := p.Hdrop().GetFilesAndFinish()
+		if win.Path.HasExtension(droppedFiles[0], ".avi", ".mkv", ".mp4") {
+			me.pic.StartPlayback(droppedFiles[0])
+		}
 	})
 
 	me.wnd.On().WmCommandAccelMenu(CMD_OPEN, func(_ wm.Command) {
