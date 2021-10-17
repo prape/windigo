@@ -28,7 +28,7 @@ func NewTracker(
 			Size(sz).
 			Horz(horz).
 			Vert(vert).
-			HCursor(win.HINSTANCE(0).LoadCursor(win.CursorResIdIdc(co.IDC_HAND))),
+			HCursor(win.HINSTANCE(0).LoadCursor(win.CursorResIdc(co.IDC_HAND))),
 	)
 
 	me := &Tracker{
