@@ -101,7 +101,12 @@ func (me *Main) events() {
 	me.wnd.On().WmCommandAccelMenu(CMD_OPEN, func(_ wm.Command) {
 		me.pic.Pause()
 
-		fod := shell.NewIFileOpenDialog(co.CLSCTX_INPROC_SERVER)
+		fod := shell.NewIFileOpenDialog(
+			win.CoCreateInstance(
+				shellco.CLSID_FileOpenDialog, nil,
+				co.CLSCTX_INPROC_SERVER,
+				shellco.IID_IFileOpenDialog),
+		)
 		defer fod.Release()
 
 		fod.SetOptions(fod.GetOptions() |

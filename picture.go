@@ -45,7 +45,7 @@ func NewPicture(
 }
 
 func (me *Picture) Free() {
-	if me.mediaCtrl.Ppv != nil {
+	if !me.mediaCtrl.IsNull() {
 		me.mediaCtrl.Stop()
 	}
 
@@ -63,13 +63,13 @@ func (me *Picture) events() {
 		me.wnd.Hwnd().BeginPaint(&ps)
 		defer me.wnd.Hwnd().EndPaint(&ps)
 
-		if me.controllerEvr.Ppv != nil {
+		if !me.controllerEvr.IsNull() {
 			me.controllerEvr.RepaintVideo()
 		}
 	})
 
 	me.wnd.On().WmSize(func(p wm.Size) {
-		if me.controllerEvr.Ppv != nil {
+		if !me.controllerEvr.IsNull() {
 			rc := me.wnd.Hwnd().GetWindowRect()
 			me.wnd.Hwnd().ScreenToClientRc(&rc)
 			me.controllerEvr.SetVideoPosition(nil, &rc)
@@ -102,14 +102,32 @@ func (me *Picture) events() {
 func (me *Picture) StartPlayback(vidPath string) {
 	me.Free()
 
-	me.graphBuilder = dshow.NewIGraphBuilder(co.CLSCTX_INPROC_SERVER)
-	me.vmr = dshow.NewEnhancedVideoRenderer(co.CLSCTX_INPROC_SERVER)
+	me.graphBuilder = dshow.NewIGraphBuilder(
+		win.CoCreateInstance(
+			dshowco.CLSID_FilterGraph, nil,
+			co.CLSCTX_INPROC_SERVER,
+			dshowco.IID_IGraphBuilder),
+	)
+	me.vmr = dshow.NewIBaseFilter(
+		win.CoCreateInstance(
+			dshowco.CLSID_EnhancedVideoRenderer, nil,
+			co.CLSCTX_INPROC_SERVER,
+			dshowco.IID_IBaseFilter),
+	)
 	me.graphBuilder.AddFilter(&me.vmr, "EVR")
 
-	getSvc := me.vmr.QueryIMFGetService()
+	getSvc := dshow.NewIMFGetService(
+		me.vmr.QueryInterface(dshowco.IID_IMFGetService),
+	)
 	defer getSvc.Release()
 
-	me.controllerEvr = getSvc.GetIMFVideoDisplayControl()
+	me.controllerEvr = dshow.NewIMFVideoDisplayControl(
+		getSvc.GetService(
+			win.NewGuidFromClsid(dshowco.CLSID_MR_VideoRenderService),
+			win.NewGuidFromIid(dshowco.IID_IMFVideoDisplayControl),
+		),
+	)
+
 	if e := me.controllerEvr.SetVideoWindow(me.wnd.Hwnd()); e != nil {
 		panic(e)
 	}
@@ -117,9 +135,15 @@ func (me *Picture) StartPlayback(vidPath string) {
 		panic(e)
 	}
 
-	me.mediaCtrl = me.graphBuilder.QueryIMediaControl()
-	me.mediaSeek = me.graphBuilder.QueryIMediaSeeking()
-	me.basicAudio = me.graphBuilder.QueryIBasicAudio()
+	me.mediaCtrl = dshow.NewIMediaControl(
+		me.graphBuilder.QueryInterface(dshowco.IID_IMediaControl),
+	)
+	me.mediaSeek = dshow.NewIMediaSeeking(
+		me.graphBuilder.QueryInterface(dshowco.IID_IMediaSeeking),
+	)
+	me.basicAudio = dshow.NewIBasicAudio(
+		me.graphBuilder.QueryInterface(dshowco.IID_IBasicAudio),
+	)
 
 	if e := me.graphBuilder.RenderFile(vidPath); e != nil {
 		panic(e)
@@ -133,7 +157,7 @@ func (me *Picture) StartPlayback(vidPath string) {
 }
 
 func (me *Picture) Pause() {
-	if me.mediaCtrl.Ppv != nil {
+	if !me.mediaCtrl.IsNull() {
 		state, _ := me.mediaCtrl.GetState(-1)
 		if state == dshowco.FILTER_STATE_State_Running {
 			me.mediaCtrl.Pause()
@@ -142,7 +166,7 @@ func (me *Picture) Pause() {
 }
 
 func (me *Picture) TogglePlayPause() {
-	if me.mediaCtrl.Ppv != nil {
+	if !me.mediaCtrl.IsNull() {
 		state, _ := me.mediaCtrl.GetState(-1)
 		if state == dshowco.FILTER_STATE_State_Running {
 			me.mediaCtrl.Pause()
@@ -153,7 +177,7 @@ func (me *Picture) TogglePlayPause() {
 }
 
 func (me *Picture) Duration() (secs int) {
-	if me.mediaSeek.Ppv == nil {
+	if me.mediaSeek.IsNull() {
 		secs = 0
 	} else {
 		secs = int(me.mediaSeek.GetDuration() / time.Second)
@@ -162,7 +186,7 @@ func (me *Picture) Duration() (secs int) {
 }
 
 func (me *Picture) SetCurrentPos(secs int) {
-	if me.mediaSeek.Ppv != nil {
+	if !me.mediaSeek.IsNull() {
 		me.mediaSeek.SetPositions(
 			time.Duration(secs)*time.Second, dshowco.SEEKING_FLAGS_AbsolutePositioning,
 			0, dshowco.SEEKING_FLAGS_NoPositioning)
@@ -170,7 +194,7 @@ func (me *Picture) SetCurrentPos(secs int) {
 }
 
 func (me *Picture) CurrentPos() (secs int) {
-	if me.mediaSeek.Ppv == nil {
+	if me.mediaSeek.IsNull() {
 		secs = 0
 	} else {
 		secs = int(me.mediaSeek.GetCurrentPosition() / time.Second)
@@ -179,7 +203,7 @@ func (me *Picture) CurrentPos() (secs int) {
 }
 
 func (me *Picture) CurrentPosDurFmt() string {
-	if me.mediaSeek.Ppv == nil {
+	if me.mediaSeek.IsNull() {
 		return "NO VIDEO"
 	}
 
@@ -195,7 +219,7 @@ func (me *Picture) CurrentPosDurFmt() string {
 }
 
 func (me *Picture) ForwardSecs(secs int) {
-	if me.mediaSeek.Ppv != nil {
+	if !me.mediaSeek.IsNull() {
 		newSecs := me.CurrentPos() + secs
 		duration := me.Duration()
 		if newSecs >= duration {
@@ -206,7 +230,7 @@ func (me *Picture) ForwardSecs(secs int) {
 }
 
 func (me *Picture) BackwardSecs(secs int) {
-	if me.mediaSeek.Ppv != nil {
+	if !me.mediaSeek.IsNull() {
 		newSecs := me.CurrentPos() - secs
 		if newSecs < 0 {
 			newSecs = 0 // min pos
