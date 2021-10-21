@@ -45,7 +45,7 @@ func NewPicture(
 }
 
 func (me *Picture) Free() {
-	if !me.mediaCtrl.IsNull() {
+	if me.mediaCtrl.Ptr() != nil {
 		me.mediaCtrl.Stop()
 	}
 
@@ -63,13 +63,13 @@ func (me *Picture) events() {
 		me.wnd.Hwnd().BeginPaint(&ps)
 		defer me.wnd.Hwnd().EndPaint(&ps)
 
-		if !me.controllerEvr.IsNull() {
+		if me.controllerEvr.Ptr() != nil {
 			me.controllerEvr.RepaintVideo()
 		}
 	})
 
 	me.wnd.On().WmSize(func(p wm.Size) {
-		if !me.controllerEvr.IsNull() {
+		if me.controllerEvr.Ptr() != nil {
 			rc := me.wnd.Hwnd().GetWindowRect()
 			me.wnd.Hwnd().ScreenToClientRc(&rc)
 			me.controllerEvr.SetVideoPosition(nil, &rc)
@@ -157,7 +157,7 @@ func (me *Picture) StartPlayback(vidPath string) {
 }
 
 func (me *Picture) Pause() {
-	if !me.mediaCtrl.IsNull() {
+	if me.mediaCtrl.Ptr() != nil {
 		state, _ := me.mediaCtrl.GetState(-1)
 		if state == dshowco.FILTER_STATE_State_Running {
 			me.mediaCtrl.Pause()
@@ -166,7 +166,7 @@ func (me *Picture) Pause() {
 }
 
 func (me *Picture) TogglePlayPause() {
-	if !me.mediaCtrl.IsNull() {
+	if me.mediaCtrl.Ptr() != nil {
 		state, _ := me.mediaCtrl.GetState(-1)
 		if state == dshowco.FILTER_STATE_State_Running {
 			me.mediaCtrl.Pause()
@@ -177,7 +177,7 @@ func (me *Picture) TogglePlayPause() {
 }
 
 func (me *Picture) Duration() (secs int) {
-	if me.mediaSeek.IsNull() {
+	if me.mediaSeek.Ptr() == nil {
 		secs = 0
 	} else {
 		secs = int(me.mediaSeek.GetDuration() / time.Second)
@@ -186,7 +186,7 @@ func (me *Picture) Duration() (secs int) {
 }
 
 func (me *Picture) SetCurrentPos(secs int) {
-	if !me.mediaSeek.IsNull() {
+	if me.mediaSeek.Ptr() != nil {
 		me.mediaSeek.SetPositions(
 			time.Duration(secs)*time.Second, dshowco.SEEKING_FLAGS_AbsolutePositioning,
 			0, dshowco.SEEKING_FLAGS_NoPositioning)
@@ -194,7 +194,7 @@ func (me *Picture) SetCurrentPos(secs int) {
 }
 
 func (me *Picture) CurrentPos() (secs int) {
-	if me.mediaSeek.IsNull() {
+	if me.mediaSeek.Ptr() == nil {
 		secs = 0
 	} else {
 		secs = int(me.mediaSeek.GetCurrentPosition() / time.Second)
@@ -203,7 +203,7 @@ func (me *Picture) CurrentPos() (secs int) {
 }
 
 func (me *Picture) CurrentPosDurFmt() string {
-	if me.mediaSeek.IsNull() {
+	if me.mediaSeek.Ptr() == nil {
 		return "NO VIDEO"
 	}
 
@@ -219,7 +219,7 @@ func (me *Picture) CurrentPosDurFmt() string {
 }
 
 func (me *Picture) ForwardSecs(secs int) {
-	if !me.mediaSeek.IsNull() {
+	if me.mediaSeek.Ptr() != nil {
 		newSecs := me.CurrentPos() + secs
 		duration := me.Duration()
 		if newSecs >= duration {
@@ -230,7 +230,7 @@ func (me *Picture) ForwardSecs(secs int) {
 }
 
 func (me *Picture) BackwardSecs(secs int) {
-	if !me.mediaSeek.IsNull() {
+	if me.mediaSeek.Ptr() != nil {
 		newSecs := me.CurrentPos() - secs
 		if newSecs < 0 {
 			newSecs = 0 // min pos
