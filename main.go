@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"runtime"
+	"runtime/debug"
+	"time"
 
 	"github.com/rodrigocfd/windigo/ui"
 	"github.com/rodrigocfd/windigo/ui/wm"
@@ -13,6 +15,14 @@ import (
 )
 
 func main() {
+	defer func() {
+		if r := recover(); r != nil {
+			win.HWND(0).MessageBox(
+				fmt.Sprintf("PANIC @ %v\n\n%v\n\n%s",
+					time.Now(), r, string(debug.Stack())),
+				"Panic", co.MB_ICONERROR)
+		}
+	}()
 	runtime.LockOSThread()
 
 	win.CoInitializeEx(co.COINIT_APARTMENTTHREADED)
@@ -42,7 +52,7 @@ func NewMain() *Main {
 			AccelTable(ui.NewAcceleratorTable().
 				AddChar('O', co.ACCELF_CONTROL, CMD_OPEN).
 				AddKey(co.VK_F1, co.ACCELF_NONE, CMD_ABOUT)).
-			ClientArea(win.SIZE{Cx: 600, Cy: 300}).
+			ClientArea(win.SIZE{Cx: 600, Cy: 270}).
 			WndStyles(co.WS_CAPTION | co.WS_SYSMENU | co.WS_CLIPCHILDREN |
 				co.WS_BORDER | co.WS_VISIBLE | co.WS_MINIMIZEBOX |
 				co.WS_MAXIMIZEBOX | co.WS_SIZEBOX).
@@ -52,12 +62,12 @@ func NewMain() *Main {
 	me := &Main{
 		wnd: wnd,
 		pic: NewPicture(wnd,
-			win.POINT{X: 10, Y: 10},
-			win.SIZE{Cx: 580, Cy: 250},
+			win.POINT{X: 2, Y: 2},
+			win.SIZE{Cx: 596, Cy: 250},
 			ui.HORZ_RESIZE, ui.VERT_RESIZE),
 		tracker: NewTracker(wnd,
-			win.POINT{X: 10, Y: 270},
-			win.SIZE{Cx: 580, Cy: 20},
+			win.POINT{X: 2, Y: 252},
+			win.SIZE{Cx: 596, Cy: 16},
 			ui.HORZ_RESIZE, ui.VERT_REPOS),
 	}
 
