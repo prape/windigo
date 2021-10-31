@@ -154,9 +154,9 @@ func (me *Main) events() {
 		tdc.SetPszMainInstruction("Playback")
 		tdc.SetPszContent(fmt.Sprintf(
 			"Windigo experimental playback application.\n\n"+
-				"Alloc mem: %s\n"+
-				"Alloc sys: %s\n"+
-				"Alloc idle: %s\n"+
+				"Objects mem: %s\n"+
+				"Reserved sys: %s\n"+
+				"Idle spans: %s\n"+
 				"GC cycles: %d\n"+
 				"Next GC: %s",
 			win.Str.FmtBytes(memStats.HeapAlloc),
