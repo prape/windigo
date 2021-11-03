@@ -24,6 +24,7 @@ func NewTracker(
 
 	wnd := ui.NewWindowControl(parent,
 		ui.WindowControlOpts().
+			WndExStyles(co.WS_EX_NONE).
 			Position(pos).
 			Size(sz).
 			Horz(horz).
@@ -44,7 +45,7 @@ func (me *Tracker) events() {
 		hwnd := me.wnd.Hwnd()
 		hasFocus := win.GetFocus() == hwnd
 
-		ps := win.PAINTSTRUCT{}
+		var ps win.PAINTSTRUCT
 		hdc := hwnd.BeginPaint(&ps)
 		defer hwnd.EndPaint(&ps)
 

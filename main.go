@@ -83,19 +83,8 @@ func (me *Main) Run() {
 
 func (me *Main) events() {
 	me.wnd.On().WmCreate(func(p wm.Create) int {
-		me.wnd.Hwnd().SetTimer(1, 100, func(msElapsed uint32) {
-			// memStats := runtime.MemStats{}
-			// runtime.ReadMemStats(&memStats)
-
-			// me.wnd.Hwnd().SetWindowText(
-			// 	fmt.Sprintf("%s / Alloc: %s, cycles: %d, next: %s",
-			// 		me.pic.CurrentPosDurFmt(),
-			// 		win.Str.FmtBytes(memStats.HeapAlloc),
-			// 		memStats.NumGC,
-			// 		win.Str.FmtBytes(memStats.NextGC)))
-
+		me.wnd.Hwnd().SetTimerCallback(100, func(_ uintptr) {
 			me.wnd.Hwnd().SetWindowText(me.pic.CurrentPosDurFmt())
-
 			me.tracker.SetElapsed(float32(me.pic.CurrentPos()) / float32(me.pic.Duration()))
 		})
 		return 0
@@ -141,15 +130,17 @@ func (me *Main) events() {
 	})
 
 	me.wnd.On().WmCommandAccelMenu(CMD_ABOUT, func(_ wm.Command) {
-		memStats := runtime.MemStats{}
+		me.pic.Pause()
+
+		var memStats runtime.MemStats
 		runtime.ReadMemStats(&memStats)
 
-		tdc := win.TASKDIALOGCONFIG{}
-		tdc.SetCbSize()
-		tdc.SetHwndParent(me.wnd.Hwnd())
-		tdc.SetDwFlags(co.TDF_ALLOW_DIALOG_CANCELLATION)
-		tdc.SetDwCommonButtons(co.TDCBF_OK)
-		tdc.SetHMainIcon(win.TdcIconTdi(co.TD_ICON_INFORMATION))
+		tdc := win.TASKDIALOGCONFIG{
+			HwndParent:      me.wnd.Hwnd(),
+			DwFlags:         co.TDF_ALLOW_DIALOG_CANCELLATION,
+			DwCommonButtons: co.TDCBF_OK,
+			HMainIcon:       win.TdcIconTdi(co.TD_ICON_INFORMATION),
+		}
 		tdc.SetPszWindowTitle("About")
 		tdc.SetPszMainInstruction("Playback")
 		tdc.SetPszContent(fmt.Sprintf(

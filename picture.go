@@ -30,6 +30,7 @@ func NewPicture(
 
 	wnd := ui.NewWindowControl(parent,
 		ui.WindowControlOpts().
+			WndExStyles(co.WS_EX_NONE).
 			Position(pos).
 			Size(sz).
 			Horz(horz).
@@ -59,7 +60,7 @@ func (me *Picture) Free() {
 
 func (me *Picture) events() {
 	me.wnd.On().WmPaint(func() {
-		ps := win.PAINTSTRUCT{}
+		var ps win.PAINTSTRUCT
 		me.wnd.Hwnd().BeginPaint(&ps)
 		defer me.wnd.Hwnd().EndPaint(&ps)
 
@@ -123,8 +124,8 @@ func (me *Picture) StartPlayback(vidPath string) {
 
 	me.controllerEvr = dshow.NewIMFVideoDisplayControl(
 		getSvc.GetService(
-			win.NewGuidFromClsid(dshowco.CLSID_MR_VideoRenderService),
-			win.NewGuidFromIid(dshowco.IID_IMFVideoDisplayControl),
+			win.GuidFromClsid(dshowco.CLSID_MR_VideoRenderService),
+			win.GuidFromIid(dshowco.IID_IMFVideoDisplayControl),
 		),
 	)
 
@@ -144,6 +145,25 @@ func (me *Picture) StartPlayback(vidPath string) {
 	me.basicAudio = dshow.NewIBasicAudio(
 		me.graphBuilder.QueryInterface(dshowco.IID_IBasicAudio),
 	)
+
+	tyInfo := me.basicAudio.GetTypeInfo(win.LCID_SYSTEM_DEFAULT)
+	defer tyInfo.Release()
+	tyAttr := tyInfo.GetTypeAttr()
+	defer tyInfo.ReleaseTypeAttr(tyAttr)
+	println(tyAttr.Typekind, tyAttr.CFuncs, tyAttr.Guid.String())
+	for i := 0; i < int(tyAttr.CFuncs); i++ {
+		funDesc := tyInfo.GetFuncDesc(i)
+		defer tyInfo.ReleaseFuncDesc(funDesc)
+
+		docz := tyInfo.GetDocumentation(funDesc.Memid)
+		println(funDesc.Memid, docz.Name, funDesc.Invkind)
+
+		if ions, e := me.basicAudio.GetIDsOfNames(win.LCID_SYSTEM_DEFAULT, []string{docz.Name}); e != nil {
+			println(e.Error())
+		} else {
+			println("ION", ions[0])
+		}
+	}
 
 	if e := me.graphBuilder.RenderFile(vidPath); e != nil {
 		panic(e)
@@ -207,10 +227,10 @@ func (me *Picture) CurrentPosDurFmt() string {
 		return "NO VIDEO"
 	}
 
-	stCurPos := win.SYSTEMTIME{}
+	var stCurPos win.SYSTEMTIME
 	stCurPos.FromDuration(me.mediaSeek.GetCurrentPosition())
 
-	stDur := win.SYSTEMTIME{}
+	var stDur win.SYSTEMTIME
 	stDur.FromDuration(me.mediaSeek.GetDuration())
 
 	return fmt.Sprintf("%d:%02d:%02d of %d:%02d:%02d",
