@@ -146,25 +146,6 @@ func (me *Picture) StartPlayback(vidPath string) {
 		me.graphBuilder.QueryInterface(dshowco.IID_IBasicAudio),
 	)
 
-	tyInfo := me.basicAudio.GetTypeInfo(win.LCID_SYSTEM_DEFAULT)
-	defer tyInfo.Release()
-	tyAttr := tyInfo.GetTypeAttr()
-	defer tyInfo.ReleaseTypeAttr(tyAttr)
-	println(tyAttr.Typekind, tyAttr.CFuncs, tyAttr.Guid.String())
-	for i := 0; i < int(tyAttr.CFuncs); i++ {
-		funDesc := tyInfo.GetFuncDesc(i)
-		defer tyInfo.ReleaseFuncDesc(funDesc)
-
-		docz := tyInfo.GetDocumentation(funDesc.Memid)
-		println(funDesc.Memid, docz.Name, funDesc.Invkind)
-
-		if ions, e := me.basicAudio.GetIDsOfNames(win.LCID_SYSTEM_DEFAULT, []string{docz.Name}); e != nil {
-			println(e.Error())
-		} else {
-			println("ION", ions[0])
-		}
-	}
-
 	if e := me.graphBuilder.RenderFile(vidPath); e != nil {
 		panic(e)
 	}
@@ -198,11 +179,10 @@ func (me *Picture) TogglePlayPause() {
 
 func (me *Picture) Duration() (secs int) {
 	if me.mediaSeek.Ptr() == nil {
-		secs = 0
+		return 0
 	} else {
-		secs = int(me.mediaSeek.GetDuration() / time.Second)
+		return int(me.mediaSeek.GetDuration() / time.Second)
 	}
-	return
 }
 
 func (me *Picture) SetCurrentPos(secs int) {
@@ -225,17 +205,18 @@ func (me *Picture) CurrentPos() (secs int) {
 func (me *Picture) CurrentPosDurFmt() string {
 	if me.mediaSeek.Ptr() == nil {
 		return "NO VIDEO"
+
+	} else {
+		var stCurPos win.SYSTEMTIME
+		stCurPos.FromDuration(me.mediaSeek.GetCurrentPosition())
+
+		var stDur win.SYSTEMTIME
+		stDur.FromDuration(me.mediaSeek.GetDuration())
+
+		return fmt.Sprintf("%d:%02d:%02d of %d:%02d:%02d",
+			stCurPos.WHour, stCurPos.WMinute, stCurPos.WSecond,
+			stDur.WHour, stDur.WMinute, stDur.WSecond)
 	}
-
-	var stCurPos win.SYSTEMTIME
-	stCurPos.FromDuration(me.mediaSeek.GetCurrentPosition())
-
-	var stDur win.SYSTEMTIME
-	stDur.FromDuration(me.mediaSeek.GetDuration())
-
-	return fmt.Sprintf("%d:%02d:%02d of %d:%02d:%02d",
-		stCurPos.WHour, stCurPos.WMinute, stCurPos.WSecond,
-		stDur.WHour, stDur.WMinute, stDur.WSecond)
 }
 
 func (me *Picture) ForwardSecs(secs int) {
