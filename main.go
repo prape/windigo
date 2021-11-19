@@ -30,6 +30,15 @@ func main() {
 
 	m := NewMain()
 	m.Run()
+
+	// clsId, _ := win.CLSIDFromProgID("Excel.Application")
+	// root := win.CoCreateInstance(clsId, nil, co.CLSCTX_SERVER, co.IID_IUNKNOWN)
+	// defer root.Release()
+	// excel := autom.NewIDispatch(root.QueryInterface(automco.IID_IDispatch))
+	// defer excel.Release()
+	// for _, f := range excel.ListFunctions() {
+	// 	println(f.Name, f.NumParams, f.FuncKind, f.Flags)
+	// }
 }
 
 const (
@@ -91,7 +100,7 @@ func (me *Main) events() {
 	})
 
 	me.wnd.On().WmDropFiles(func(p wm.DropFiles) {
-		droppedFiles := p.Hdrop().GetFilesAndFinish()
+		droppedFiles := p.Hdrop().ListFilesAndFinish()
 		if win.Path.HasExtension(droppedFiles[0], ".avi", ".mkv", ".mp4") {
 			me.pic.StartPlayback(droppedFiles[0])
 		}
@@ -136,26 +145,25 @@ func (me *Main) events() {
 		runtime.ReadMemStats(&memStats)
 
 		tdc := win.TASKDIALOGCONFIG{
-			HwndParent:      me.wnd.Hwnd(),
-			DwFlags:         co.TDF_ALLOW_DIALOG_CANCELLATION,
-			DwCommonButtons: co.TDCBF_OK,
-			HMainIcon:       win.TdcIconTdi(co.TD_ICON_INFORMATION),
+			HwndParent:         me.wnd.Hwnd(),
+			DwFlags:            co.TDF_ALLOW_DIALOG_CANCELLATION,
+			DwCommonButtons:    co.TDCBF_OK,
+			PszWindowTitle:     "About",
+			HMainIcon:          win.TdcIconTdi(co.TD_ICON_INFORMATION),
+			PszMainInstruction: "Playback",
+			PszContent: fmt.Sprintf(
+				"Windigo experimental playback application.\n\n"+
+					"Objects mem: %s\n"+
+					"Reserved sys: %s\n"+
+					"Idle spans: %s\n"+
+					"GC cycles: %d\n"+
+					"Next GC: %s",
+				win.Str.FmtBytes(memStats.HeapAlloc),
+				win.Str.FmtBytes(memStats.HeapSys),
+				win.Str.FmtBytes(memStats.HeapIdle),
+				memStats.NumGC,
+				win.Str.FmtBytes(memStats.NextGC)),
 		}
-		tdc.SetPszWindowTitle("About")
-		tdc.SetPszMainInstruction("Playback")
-		tdc.SetPszContent(fmt.Sprintf(
-			"Windigo experimental playback application.\n\n"+
-				"Objects mem: %s\n"+
-				"Reserved sys: %s\n"+
-				"Idle spans: %s\n"+
-				"GC cycles: %d\n"+
-				"Next GC: %s",
-			win.Str.FmtBytes(memStats.HeapAlloc),
-			win.Str.FmtBytes(memStats.HeapSys),
-			win.Str.FmtBytes(memStats.HeapIdle),
-			memStats.NumGC,
-			win.Str.FmtBytes(memStats.NextGC)))
-
 		win.TaskDialogIndirect(&tdc)
 	})
 
